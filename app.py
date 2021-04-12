@@ -14,6 +14,21 @@ with sqlite3.connect("database.db") as con:
     cur = con.cursor()
     cur.execute("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, article_index INTEGER, liked_articles_indices TEXT, disliked_articles_indices TEXT)")
 
+
+
+def get_next_correct_lang(arr, i):
+    new_index = 0
+
+    for x in arr[i:]:
+        if x[14] == 'en':
+            new_index = int(x[0])
+
+            break
+    
+    return new_index
+
+
+
 @app.route("/article")
 def index():
     name = session.get('name')
@@ -24,7 +39,16 @@ def index():
             cur = con.cursor()
             cur.execute("UPDATE users SET article_index = ? WHERE name = ?", (index, name))
             con.commit()
-            
+
+        lang = all_articles[index][14]
+
+
+        if lang != 'en':
+            new_index = get_next_correct_lang(all_articles, index)
+
+            session['index'] = new_index
+            index = new_index
+        
         article_data = {
             "index": all_articles[index][0],
             "url": all_articles[index][11],
@@ -176,7 +200,8 @@ def recommended():
                 article = all_articles[int(i)]
 
                 for i in get_recommendations(article[4]):
-                    all_recommended.append(i)
+                    if i[3] == 'en':
+                        all_recommended.append(i)
 
         all_recommended.sort()
         all_recommended = list(all_recommended for all_recommended,_ in itertools.groupby(all_recommended))
@@ -185,7 +210,7 @@ def recommended():
         for recommended in all_recommended:
             article_data.append({
                 "url": recommended[0],
-                "title": recommended[1],
+                "title": recommended[3],
                 "text": recommended[2],
                 "lang": recommended[3],
                 "total_events": recommended[4]
