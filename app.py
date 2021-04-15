@@ -210,7 +210,7 @@ def recommended():
         for recommended in all_recommended:
             article_data.append({
                 "url": recommended[0],
-                "title": recommended[3],
+                "title": recommended[1],
                 "text": recommended[2],
                 "lang": recommended[3],
                 "total_events": recommended[4]
